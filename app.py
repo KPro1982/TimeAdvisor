@@ -8,6 +8,7 @@ import extract_msg
 import os
 import textwrap
 import csv
+import datetime
 
 from dotenv import load_dotenv
 
@@ -34,6 +35,35 @@ from os import listdir
 from os.path import join, isfile
 
 from pathlib import Path
+
+from dataclasses import astuple, dataclass, field
+
+# create data class
+
+@dataclass
+class timeEntry:
+    # UserID: str = "DCRA"
+    # Date: str = ""
+    # Timekeeper: str = "DCRA"
+    # Client: int = 0
+    # Matter: int = 0
+    # Task: str = ""
+    # Activity: str = ""
+    # Billable: str = ""
+    # HoursWorked: float = 0
+    # HoursBilled: float = 0
+    # Rate: str = ""
+    # Amount: str = ""
+    # Phase: str = ""
+    # Code1: str = ""
+    # Code2: str = ""
+    # Code3: str = ""
+    # Note: str = ""
+    Narrative: str = ""
+    # Alias: str = ""
+
+timeEntries = []  # This will contain all of the timeentries
+
 
 # load the openai_api key
 
@@ -74,14 +104,15 @@ with st.sidebar:
 
 
 
-def generateDescription(docs):
+def generateNarrative(docs):
     prompt_template = """Prepare a billing entry for attorney Daniel Cravens that succinctly summarizes the work that he performed. You must begin your billing entry with a verb. Where the work performed was a communication with another person, you should begin the billing entry with "Email communication with [person that Daniel was emailing] concerning [description of work]. You will infer the work performed from the following email: "{text}"
         Description: """
     prompt = PromptTemplate.from_template(prompt_template)
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt)
     output_summary = chain.run(docs)
-    description = textwrap.fill(output_summary, width=100)
-    st.write("Time Entry: ", description)
+    formattedNarrative = textwrap.fill(output_summary, width=100)
+    st.write("Narrative: ", formattedNarrative)
+    return output_summary
 
 def record_entry(entry):
     st.write(entry)
@@ -96,7 +127,12 @@ def process_email(email):
     texts = text_splitter.split_text(msg.body)
  #   docs = [Document(page_content=t) for t in texts[:4]]
     docs = [Document(page_content=msg.body)]
-    generateDescription(docs)
+    te = timeEntry()
+    narrative = generateNarrative(docs)
+    te.Narrative = narrative
+
+    st.write("Time Entry **structure**: ", te)
+
 
 
 
