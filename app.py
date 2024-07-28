@@ -73,12 +73,12 @@ class timeEntry:
 
 
 # load the openai_api key
-
+openai_api_key = st.secrets["OPENAI_API_KEY"]
 load_dotenv()
 
 # choose llm and temperature
 
-llm = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo-16k")
+llm = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo-16k", api_key=openai_api_key)
 
 # set up UI using streamlit. st = streamlit
 
