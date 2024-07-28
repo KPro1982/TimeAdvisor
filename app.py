@@ -9,6 +9,9 @@ import os
 import textwrap
 import csv
 import datetime
+import pandas as pd
+
+
 
 from dotenv import load_dotenv
 
@@ -37,6 +40,8 @@ from os.path import join, isfile
 from pathlib import Path
 
 from dataclasses import astuple, dataclass, field
+
+
 
 # create data class
 
@@ -133,6 +138,7 @@ def process_email(email):
 
     st.write("Time Entry **structure**: ", te)
 
+]iuvc \
 
 
 
