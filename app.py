@@ -65,9 +65,11 @@ class timeEntry:
     # Code3: str = ""
     # Note: str = ""
     Narrative: str = ""
+    Body: str = ""
+    Subject: str = ""
     # Alias: str = ""
 
-timeEntries = []  # This will contain all of the timeentries
+
 
 
 # load the openai_api key
@@ -122,6 +124,7 @@ def generateNarrative(docs):
 def record_entry(entry):
     st.write(entry)
 
+timeEntries = []  # This will contain all of the timeentries
 
 def process_email(email):
     msg = extract_msg.Message(email)
@@ -135,10 +138,13 @@ def process_email(email):
     te = timeEntry()
     narrative = generateNarrative(docs)
     te.Narrative = narrative
+    te.Body = msg.body 
+    te.Subject =  msg.subject
+    st.write("Time Entry", te)
+    timeEntries.append(te)
 
-    st.write("Time Entry **structure**: ", te)
+st.write("time entries",timeEntries)
 
-]iuvc \
 
 
 
