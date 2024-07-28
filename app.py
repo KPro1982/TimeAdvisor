@@ -1,4 +1,8 @@
-# pip install streamlit langchain lanchain-openai beautifulsoup4 python-dotenv chromadb
+# pip install -r requirements.txt
+# pip freeze > requirements.txt
+
+# Import all of the modules used by the code
+
 import streamlit as st
 import extract_msg
 import os
@@ -28,20 +32,21 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from os import listdir
 from os.path import join, isfile
 
+# load the openai_api key
 
 load_dotenv()
 
-# Set up LLM
+# choose llm and temperature
+
 llm = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo-16k")
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-# UI
+# set up UI using streamlit. st = streamlit
 
 st.set_page_config(page_title="TimeAdvisor")
 
 st.title("Time Advisor")
+
+# define a method to be called from loop
 
 def process_email(email):
     msg = extract_msg.Message(email)
@@ -60,57 +65,11 @@ def process_email(email):
     description = textwrap.fill(output_summary, width=100)
     st.write("Time Entry: ", description)
 
-
+# st call creates the UI element for the drag and drop function
 uploaded_emails = st.file_uploader("Select Email to Process",  accept_multiple_files=True, help="emails to summarizes")
+
+# loop to process the email dropped into UI
 for email in uploaded_emails:
-    process_email(email)
+    process_email(email)  # calling the method defined above
 
     
-
-
-
-
-
-
-def get_response(query, chat_history):
-    template = """
-        You are a helpful assistant. Answer the following questions considering the history of the conversation:
-
-        Chat history: {chat_history}
-        User question: {user_question}
-
-        """
-    prompt = ChatPromptTemplate.from_template(template)
-
-    llm = ChatOpenAI()
-    
-    chain = prompt | llm | StrOutputParser()
-    
-    return chain.stream({
-            "chat_history": chat_history,
-            "user_question": query
-
-
-        })
-
-for message in st.session_state.chat_history:
-    if isinstance(message, HumanMessage):
-        with st.chat_message("Human"):
-            st.markdown(message.content)
-    else:
-        with st.chat_message("AI"):
-            st.markdown(message.content)
-
-
-
-
-user_query = st.chat_input("Your message")
-if user_query is not None and user_query != "":
-    st.session_state.chat_history.append(HumanMessage(user_query))
-
-    with st.chat_message("Human"):
-        st.markdown(user_query)
-
-    with st.chat_message("AI"):       
-        ai_response = st.write_stream(get_response(user_query, st.session_state.chat_history))
-
