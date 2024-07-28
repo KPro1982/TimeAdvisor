@@ -45,7 +45,8 @@ llm = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo-16k")
 
 # set up UI using streamlit. st = streamlit
 
-st.set_page_config(page_title="TimeAdvisor")
+
+st.set_page_config(page_title="TimeAdvisor", page_icon=None, layout="centered", initial_sidebar_state="expanded", menu_items=None)
 st.title("Time Advisor")
 datafileName = ""
 
