@@ -74,7 +74,7 @@ class timeEntry:
 
 # load the openai_api key
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-load_dotenv()
+#load_dotenv()
 
 # choose llm and temperature
 
