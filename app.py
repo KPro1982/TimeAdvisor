@@ -72,7 +72,8 @@ class timeEntry:
 
 clientAliases = ['None','Aguilera v. Turner Systems, Inc.', 'Alvarez v. Command Security Services', 'Barnwell v. Gilton Solid Waste Management', 'Bhatia v. Mojio', 'Buksh v. Sixt Rent A Car', 'CAB v. UNITED SITE SERVICES, INC.', 'Casbeer v. Friends of Downtown SLO', 'Castellanos v. Urners, Inc.', 'Clement v. Rescue Mission Alliance', 'Cooper Aerial - PSG Contract Review', 'Crowe v. Alternative Power Generation', 'Deus v. Cuvaison, Inc.', 'Diaz v. Smartlink', 'Ghasemi v Valentia Analytical', 'Gonzalez Davalos v. Nouveau Bakery LLC', 'Gonzalez v. DS Electric, Inc.', 'Hernandez v. TSM Insurance Services', 'Hernandez v. Zarate Foods', 'Hicks v. SSA Group, LLC', 'Jackson v. Mental Health Systems dba TURN', 'Jermane v. Bethany Home Society of San Joaquin', 'Jimenez v. Wade et al ', 'Kolkmann v. Alternative Power Generation', 'Kumar DLSE De Novo Appeals', 'Melendez v. Peters Fruit Farms, Inc.', 'Miller v. Urata & Sons Concrete', 'Olson v. Allen Property Group, Inc.', 'Oracle Anesthesia, Inc. v. Central Valley Anesthesia Partners', 'Page v. Topix Pharmaceuticals', 'Patterson Board v. DCARA', 'PCC v. Fisher Construction Group', 'Raj v. WFP Hospitality II LLC', 'Rentner v. Trimble, Fletchers', 'Rocio Tafoya v. Peters Fruit Farms, Inc.', 'SBM v. Baker', 'Spooner v. Tri-Ced Economic Development Corporation', 'Staedler v. SSA Group, LLC', 'Steve v. Tulare Firestone, Inc.', 'Sweet Adeline v. Tasty Wings', 'TGS Logistics v. PCC Logistics', 'Thomas v. US Tech, Quest Media', 'Turpin v. Sinclair Broadcast Group, Inc.', 'Vaughn v. United Freight Lines', 'Wang et al v. Harris et al.', 'Webb v. Doug Tauzer Construction', 'White v. Andys Produce Market', 'Wood v. Smartlink']
 timeEntries = []  # This will contain all of the timeentries
-
+global entryIndex 
+entryIndex = 0
 
 # load the openai_api key
 openai_api_key = st.secrets["OpenAI_key"]
@@ -122,6 +123,14 @@ def process_email(email):
     return te
 
 
+def ValidateIndex(x):
+    if(x <= 0):
+        x = 0
+    elif(x >= len(timeEntries)-1):
+         x = len(timeEntries)-1
+    print("Valdiate: ", x)
+    return x
+
 st.set_page_config(page_title="TimeAdvisor", page_icon=None, layout="centered", initial_sidebar_state="expanded", menu_items=None)
 st.title("Time Advisor")
 datafileName = ""
@@ -142,16 +151,24 @@ with tab1:
         for email in uploaded_emails:
             timeEntries.append(process_email(email))
 
+
+
 with tab2:
-    st.date_input("Date: ", value=timeEntries[0].Date)
+    st.write("Entry # ", entryIndex, "out of ", len(timeEntries))
+    st.date_input("Date: ", value=timeEntries[entryIndex].Date)
     st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
-    match = clientAliases.index(timeEntries[0].Alias)
+    match = clientAliases.index(timeEntries[entryIndex].Alias)
     client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
    # client_alias = st.text_input(label="Email Subject Line: ", value=timeEntries[0].Subject)
-    narrative = st.text_area(label="Narrative: ", value=timeEntries[0].Narrative)
+    narrative = st.text_area(label="Narrative: ", value=timeEntries[entryIndex].Narrative)
+    
+    col1, col2, col3 = st.columns([1, 4, 1], gap="large")
+    with col1:
+        if(st.button("Prev")):
+            entryIndex = ValidateIndex(entryIndex-1)
 
-with tab3:
-    st.header("An owl")
-    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
+    with col3:
+        if(st.button("Next")):
+            entryIndex = ValidateIndex(entryIndex+1)
 
 
