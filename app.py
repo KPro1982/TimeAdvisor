@@ -85,38 +85,6 @@ openai_api_key = st.secrets["OpenAI_key"]
 # set up UI using streamlit. st = streamlit
 
 
-st.set_page_config(page_title="TimeAdvisor", page_icon=None, layout="centered", initial_sidebar_state="expanded", menu_items=None)
-st.title("Time Advisor")
-datafileName = ""
-
-
-tab1, tab2, tab3 = st.tabs(["Config", "Review", "Submit"])
-
-with tab1:
-    st.subheader("DATAFILE", divider=True)
-    create_button = st.button("Create New")
-    if (create_button):
-        datafileName = st.text_input("Filename", "")
-    append_button = st.button("Append Existing")
-    st.text(datafileName)
-    st.subheader("PROCESS EMAIL", divider=True)
-    uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
-    if (st.button("Process Email")):
-        for email in uploaded_emails:
-            timeEntries.append(process_email(email))
-
-with tab2:
-    st.date_input("Date: ", value=timeEntries[0].Date)
-    st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
-    match = clientAliases.index(timeEntries[0].Alias)
-    client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
-   # client_alias = st.text_input(label="Email Subject Line: ", value=timeEntries[0].Subject)
-    narrative = st.text_area(label="Narrative: ", value=timeEntries[0].Narrative)
-
-with tab3:
-    st.header("An owl")
-    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
-
 def generateNarrative(docs):
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
     prompt_template = """Prepare a billing entry for attorney Daniel Cravens that succinctly summarizes the work that he performed. You must begin your billing entry with a verb. Where the work performed was a communication with another person, you should begin the billing entry with "Email communication with [person that Daniel was emailing] concerning [description of work]. You will infer the work performed from the following email: "{text}"
@@ -152,3 +120,38 @@ def process_email(email):
     te.Alias = generateClientAlias(docs)
     te.Date = msg.date
     return te
+
+
+st.set_page_config(page_title="TimeAdvisor", page_icon=None, layout="centered", initial_sidebar_state="expanded", menu_items=None)
+st.title("Time Advisor")
+datafileName = ""
+
+
+tab1, tab2, tab3 = st.tabs(["Config", "Review", "Submit"])
+
+with tab1:
+    st.subheader("DATAFILE", divider=True)
+    create_button = st.button("Create New")
+    if (create_button):
+        datafileName = st.text_input("Filename", "")
+    append_button = st.button("Append Existing")
+    st.text(datafileName)
+    st.subheader("PROCESS EMAIL", divider=True)
+    uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
+    if (st.button("Process Email")):
+        for email in uploaded_emails:
+            timeEntries.append(process_email(email))
+
+with tab2:
+    st.date_input("Date: ", value=timeEntries[0].Date)
+    st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+    match = clientAliases.index(timeEntries[0].Alias)
+    client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
+   # client_alias = st.text_input(label="Email Subject Line: ", value=timeEntries[0].Subject)
+    narrative = st.text_area(label="Narrative: ", value=timeEntries[0].Narrative)
+
+with tab3:
+    st.header("An owl")
+    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
+
+
