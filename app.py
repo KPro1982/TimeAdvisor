@@ -40,9 +40,10 @@ st.set_page_config(
     )
 
 def ValidateIndex(x):
-    if(st.session_state.entryIndex + x <= 0):
+    print("Validate: ", x)
+    if(st.session_state.entryIndex + x < 0):
         st.session_state.entryIndex = 0
-    elif(st.session_state.entryIndex + x >= len(st.session_state.timeEntries)-1):
+    elif(st.session_state.entryIndex + x > len(st.session_state.timeEntries)-1):
          st.session_state.entryIndex = len(st.session_state.timeEntries)-1
     else:
        st.session_state.entryIndex = st.session_state.entryIndex + x 
