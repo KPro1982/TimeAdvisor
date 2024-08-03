@@ -71,7 +71,7 @@ class timeEntry:
 
 
 clientAliases = ['None','Aguilera v. Turner Systems, Inc.', 'Alvarez v. Command Security Services', 'Barnwell v. Gilton Solid Waste Management', 'Bhatia v. Mojio', 'Buksh v. Sixt Rent A Car', 'CAB v. UNITED SITE SERVICES, INC.', 'Casbeer v. Friends of Downtown SLO', 'Castellanos v. Urners, Inc.', 'Clement v. Rescue Mission Alliance', 'Cooper Aerial - PSG Contract Review', 'Crowe v. Alternative Power Generation', 'Deus v. Cuvaison, Inc.', 'Diaz v. Smartlink', 'Ghasemi v Valentia Analytical', 'Gonzalez Davalos v. Nouveau Bakery LLC', 'Gonzalez v. DS Electric, Inc.', 'Hernandez v. TSM Insurance Services', 'Hernandez v. Zarate Foods', 'Hicks v. SSA Group, LLC', 'Jackson v. Mental Health Systems dba TURN', 'Jermane v. Bethany Home Society of San Joaquin', 'Jimenez v. Wade et al ', 'Kolkmann v. Alternative Power Generation', 'Kumar DLSE De Novo Appeals', 'Melendez v. Peters Fruit Farms, Inc.', 'Miller v. Urata & Sons Concrete', 'Olson v. Allen Property Group, Inc.', 'Oracle Anesthesia, Inc. v. Central Valley Anesthesia Partners', 'Page v. Topix Pharmaceuticals', 'Patterson Board v. DCARA', 'PCC v. Fisher Construction Group', 'Raj v. WFP Hospitality II LLC', 'Rentner v. Trimble, Fletchers', 'Rocio Tafoya v. Peters Fruit Farms, Inc.', 'SBM v. Baker', 'Spooner v. Tri-Ced Economic Development Corporation', 'Staedler v. SSA Group, LLC', 'Steve v. Tulare Firestone, Inc.', 'Sweet Adeline v. Tasty Wings', 'TGS Logistics v. PCC Logistics', 'Thomas v. US Tech, Quest Media', 'Turpin v. Sinclair Broadcast Group, Inc.', 'Vaughn v. United Freight Lines', 'Wang et al v. Harris et al.', 'Webb v. Doug Tauzer Construction', 'White v. Andys Produce Market', 'Wood v. Smartlink']
-
+timeEntries = []  # This will contain all of the timeentries
 
 
 # load the openai_api key
@@ -89,26 +89,33 @@ st.set_page_config(page_title="TimeAdvisor", page_icon=None, layout="centered", 
 st.title("Time Advisor")
 datafileName = ""
 
-with st.sidebar:
-    st.subheader("DATAFILE", divider=True)
 
+tab1, tab2, tab3 = st.tabs(["Config", "Review", "Submit"])
+
+with tab1:
+    st.subheader("DATAFILE", divider=True)
     create_button = st.button("Create New")
     if (create_button):
         datafileName = st.text_input("Filename", "")
     append_button = st.button("Append Existing")
-
-
     st.text(datafileName)
-
     st.subheader("PROCESS EMAIL", divider=True)
     uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
+    if (st.button("Process Email")):
+        for email in uploaded_emails:
+            timeEntries.append(process_email(email))
 
+with tab2:
+    st.date_input("Date: ", value=timeEntries[0].Date)
+    st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+    match = clientAliases.index(timeEntries[0].Alias)
+    client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
+   # client_alias = st.text_input(label="Email Subject Line: ", value=timeEntries[0].Subject)
+    narrative = st.text_area(label="Narrative: ", value=timeEntries[0].Narrative)
 
-
-
-
-
-
+with tab3:
+    st.header("An owl")
+    st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
 
 def generateNarrative(docs):
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
@@ -122,19 +129,14 @@ def generateNarrative(docs):
 def generateClientAlias(docs):
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
     prompt_template_client = """Infer the ALIAS  from the body and subject of the following email: "{text}" as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to 'Turner Systems'. However, if you cannot infer a match, return 'None'. ALIASES: 'None', Do NOT include any quotes in the resposne. 'Aguilera v. Turner Systems, Inc.', 'Alvarez v. Command Security Services', 'Barnwell v. Gilton Solid Waste Management', 'Bhatia v. Mojio', 'Buksh v. Sixt Rent A Car', 'CAB v. UNITED SITE SERVICES, INC.', 'Casbeer v. Friends of Downtown SLO', 'Castellanos v. Urners, Inc.', 'Clement v. Rescue Mission Alliance', 'Cooper Aerial - PSG Contract Review', 'Crowe v. Alternative Power Generation', 'Deus v. Cuvaison, Inc.', 'Diaz v. Smartlink', 'Ghasemi v Valentia Analytical', 'Gonzalez Davalos v. Nouveau Bakery LLC', 'Gonzalez v. DS Electric, Inc.', 'Hernandez v. TSM Insurance Services', 'Hernandez v. Zarate Foods', 'Hicks v. SSA Group, LLC', 'Jackson v. Mental Health Systems dba TURN', 'Jermane v. Bethany Home Society of San Joaquin', 'Jimenez v. Wade et al ', 'Kolkmann v. Alternative Power Generation', 'Kumar DLSE De Novo Appeals', 'Melendez v. Peters Fruit Farms, Inc.', 'Miller v. Urata & Sons Concrete', 'Olson v. Allen Property Group, Inc.', 'Oracle Anesthesia, Inc. v. Central Valley Anesthesia Partners', 'Page v. Topix Pharmaceuticals', 'Patterson Board v. DCARA', 'PCC v. Fisher Construction Group', 'Raj v. WFP Hospitality II LLC', 'Rentner v. Trimble, Fletchers', 'Rocio Tafoya v. Peters Fruit Farms, Inc.', 'SBM v. Baker', 'Spooner v. Tri-Ced Economic Development Corporation', 'Staedler v. SSA Group, LLC', 'Steve v. Tulare Firestone, Inc.', 'Sweet Adeline v. Tasty Wings', 'TGS Logistics v. PCC Logistics', 'Thomas v. US Tech, Quest Media', 'Turpin v. Sinclair Broadcast Group, Inc.', 'Vaughn v. United Freight Lines', 'Wang et al v. Harris et al.', 'Webb v. Doug Tauzer Construction', 'White v. Andys Produce Market', 'Wood v. Smartlink'"""
-
     prompt_clientmatter = PromptTemplate.from_template(prompt_template_client)
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt_clientmatter)
     output_clientmatter = chain.run(docs)
     return output_clientmatter
 
-timeEntries = []  # This will contain all of the timeentries
-
-
 def process_email(email):
     global timeEntries
     msg = extract_msg.Message(email)
-
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=4000, chunk_overlap=0, separators=[" ", ",", "\n"]
     )
@@ -150,21 +152,3 @@ def process_email(email):
     te.Alias = generateClientAlias(docs)
     te.Date = msg.date
     return te
-
-
-# loop to process the email dropped into UI
-for email in uploaded_emails:
-    timeEntries.append(process_email(email))
-
-
-with st.form(key="timeentry_form"):
-    st.date_input("Date: ", value=timeEntries[0].Date)
-    st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
-    match = clientAliases.index(timeEntries[0].Alias)
-    client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
-   # client_alias = st.text_input(label="Email Subject Line: ", value=timeEntries[0].Subject)
-    narrative = st.text_area(label="Narrative: ", value=timeEntries[0].Narrative)
-    submitButton = st.form_submit_button("Submit")
-    
-    #st.write("Body: ", timeEntries[0].Body)
-           
