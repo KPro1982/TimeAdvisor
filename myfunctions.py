@@ -77,26 +77,42 @@ def generateNarrative(docs):
     output_summary = chain.run(docs)
     return output_summary
 
-def generateClientAlias(docs):
-    clientData = pd.read_excel(r"G:\Data\clientdata.xlsx")
+def GetClientDictionary():
+    ClientDict = pd.read_excel(r"G:\Data\clientdata.xlsx")
+    return ClientDict
+
+def GetAliasesList():
+    clientData = GetClientDictionary()
     clientDict = clientData.to_dict('split')
+    aliasesList = clientData.to_dict('list')['Name']
+    aliasesList.insert(0,"None")
+    return aliasesList
+
+def GetAliasesString():
+    AliasesList = GetAliasesList()
     delimiter = ", "
-    clientAliases = delimiter.join(clientData.to_dict('list')['Name'])
+    return delimiter.join(AliasesList)
+
+def generateClientAlias(docs):
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
-    prompt_template_client = """Infer the ALIAS from the body and subject of the following email: "{text}" as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to 'Turner Systems'. However, if you cannot infer a match, return 'None'. ALIASES: {Aliases}"""
-    prompt_clientmatter = PromptTemplate.from_template(prompt_template_client)
-    prompt_clientmatter.format(Aliases=clientAliases)
-    chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt_clientmatter)
+    AliasesString = GetAliasesString()
+
+# Define template
+
+    template_string = "Infer the ALIAS from the body and subject of the following email: {text} as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to Turner Systems. However, if you cannot infer a match, return None. ALIASES = " + AliasesString
+
+    prompt = PromptTemplate.from_template(template_string)
+    
+    chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt)
     output_clientmatter = chain.run(docs)
+    print("Generated Alias: ", output_clientmatter)
     return output_clientmatter
 
 def ConvertDate(year, month, day):
-    print("year", year, "month", month, "day", day)
     yearstr = "{:04d}".format(year)
     monthstr = "{:02d}".format(month)
     daystr = "{:02d}".format(day)
     datestr = yearstr+monthstr+daystr
-    print(datestr)
     return datestr
 
 def process_email(email):

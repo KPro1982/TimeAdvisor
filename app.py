@@ -14,6 +14,9 @@ import myfunctions
 
 from myfunctions import process_email
 from myfunctions import timeEntry
+from myfunctions import GetAliasesList
+
+
 from enum import Enum
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
@@ -21,11 +24,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import OutlookMessageLoader
-from langchain_openai import ChatOpenAI
-from langchain.chat_models import ChatOpenAI
+from langchain_community.llms import openai
 from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
-from langchain import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from os import listdir
 from os.path import join, isfile
@@ -40,7 +41,6 @@ st.set_page_config(
     )
 
 def ValidateIndex(x):
-    print("Validate called: x =", x, ": Index =", st.session_state.entryIndex)
     maxx = len(st.session_state.timeEntries)-1
     if(st.session_state.entryIndex + x < 0):
         st.session_state.entryIndex = 0
@@ -50,31 +50,37 @@ def ValidateIndex(x):
        st.session_state.entryIndex = st.session_state.entryIndex + x 
 
 def DisplayReviewTab():
-    col1, col2 = st.columns([1, 1], gap="small")
-    with col1:
-        bcol1, bcol2, bcol3 = st.columns([1, 1, 4], gap="small") 
-        with bcol1:   
-            if(st.button("Prev", key="PREV")):
-                print("PREV pressed")
-                ValidateIndex(-1)
-        with bcol2:
-            if(st.button("Next", key="NEXT")):
-                print("NEXT pressed")
-                ValidateIndex(1)
-        with bcol3:
-            st.write("Entry # ", st.session_state.entryIndex, "out of ", len(st.session_state.timeEntries)-1)
+    if(len(st.session_state.timeEntries)>=1):
+        col1, col2 = st.columns([1, 1], gap="small")
+        with col1:
+            bcol1, bcol2, bcol3 = st.columns([1, 1, 4], gap="small") 
+            with bcol1:   
+                if(st.button("Prev", key="PREV")):
+                    ValidateIndex(-1)
+            with bcol2:
+                if(st.button("Next", key="NEXT")):
+                    ValidateIndex(1)
+            with bcol3:
+                st.write("Entry # ", st.session_state.entryIndex, "out of ", len(st.session_state.timeEntries)-1)
 
-        
-        st.text_input("Date: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Date)
-        match = clientAliases.index(st.session_state.timeEntries[st.session_state.entryIndex].Alias)
-        client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
-        narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
-        st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+            clientAliases = GetAliasesList()
+            st.text_input("Date: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Date)
 
-    with col2:
-        print("Col2 Index =", st.session_state.entryIndex)
-        st.text_area("Subject:", value=st.session_state.timeEntries[st.session_state.entryIndex].Subject)
-        st.text_area("Body", value=st.session_state.timeEntries[st.session_state.entryIndex].Body, height=450)
+            try:
+                match = clientAliases.index(st.session_state.timeEntries[st.session_state.entryIndex].Alias)
+            except:                     
+                print("Client alias not found")        # consider retrying lookup on failure
+                match = 0
+
+            client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
+    
+            narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
+
+            st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+
+        with col2:
+            st.text_area("Subject:", value=st.session_state.timeEntries[st.session_state.entryIndex].Subject)
+            st.text_area("Body", value=st.session_state.timeEntries[st.session_state.entryIndex].Body, height=450)
 
 
 
