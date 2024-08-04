@@ -44,26 +44,27 @@ from dataclasses import astuple, dataclass, field
 @dataclass
 class timeEntry:
     UserID: str = "DCRA"
-    Date: str = ""
+    Date: str = "19001231"
     Timekeeper: str = "DCRA"
-    # Client: int = 0
-    # Matter: int = 0
-    # Task: str = ""
-    # Activity: str = ""
-    # Billable: str = ""
-    # HoursWorked: float = 0
-    # HoursBilled: float = 0
-    # Rate: str = ""
-    # Amount: str = ""
-    # Phase: str = ""
-    # Code1: str = ""
-    # Code2: str = ""
-    # Code3: str = ""
-    # Note: str = ""
+    Client: int = 0
+    Matter: int = 0
+    Task: str = " "
+    Activity: str = " "
+    Billable: str = " "
+    HoursWorked: float = 0
+    HoursBilled: float = 0
+    Rate: str = ""
+    Amount: str = ""
+    Phase: str = ""
+    Code1: str = ""
+    Code2: str = ""
+    Code3: str = ""
+    Note: str = ""
     Narrative: str = ""
     Body: str = ""
     Subject: str = ""
     Alias: str = ""
+
 
     
 
@@ -77,12 +78,26 @@ def generateNarrative(docs):
     return output_summary
 
 def generateClientAlias(docs):
+    clientData = pd.read_excel(r"G:\Data\clientdata.xlsx")
+    clientDict = clientData.to_dict('split')
+    delimiter = ", "
+    clientAliases = delimiter.join(clientData.to_dict('list')['Name'])
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
-    prompt_template_client = """Infer the ALIAS  from the body and subject of the following email: "{text}" as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to 'Turner Systems'. However, if you cannot infer a match, return 'None'. ALIASES: 'None', Do NOT include any quotes in the resposne. 'Aguilera v. Turner Systems, Inc.', 'Alvarez v. Command Security Services', 'Barnwell v. Gilton Solid Waste Management', 'Bhatia v. Mojio', 'Buksh v. Sixt Rent A Car', 'CAB v. UNITED SITE SERVICES, INC.', 'Casbeer v. Friends of Downtown SLO', 'Castellanos v. Urners, Inc.', 'Clement v. Rescue Mission Alliance', 'Cooper Aerial - PSG Contract Review', 'Crowe v. Alternative Power Generation', 'Deus v. Cuvaison, Inc.', 'Diaz v. Smartlink', 'Ghasemi v Valentia Analytical', 'Gonzalez Davalos v. Nouveau Bakery LLC', 'Gonzalez v. DS Electric, Inc.', 'Hernandez v. TSM Insurance Services', 'Hernandez v. Zarate Foods', 'Hicks v. SSA Group, LLC', 'Jackson v. Mental Health Systems dba TURN', 'Jermane v. Bethany Home Society of San Joaquin', 'Jimenez v. Wade et al ', 'Kolkmann v. Alternative Power Generation', 'Kumar DLSE De Novo Appeals', 'Melendez v. Peters Fruit Farms, Inc.', 'Miller v. Urata & Sons Concrete', 'Olson v. Allen Property Group, Inc.', 'Oracle Anesthesia, Inc. v. Central Valley Anesthesia Partners', 'Page v. Topix Pharmaceuticals', 'Patterson Board v. DCARA', 'PCC v. Fisher Construction Group', 'Raj v. WFP Hospitality II LLC', 'Rentner v. Trimble, Fletchers', 'Rocio Tafoya v. Peters Fruit Farms, Inc.', 'SBM v. Baker', 'Spooner v. Tri-Ced Economic Development Corporation', 'Staedler v. SSA Group, LLC', 'Steve v. Tulare Firestone, Inc.', 'Sweet Adeline v. Tasty Wings', 'TGS Logistics v. PCC Logistics', 'Thomas v. US Tech, Quest Media', 'Turpin v. Sinclair Broadcast Group, Inc.', 'Vaughn v. United Freight Lines', 'Wang et al v. Harris et al.', 'Webb v. Doug Tauzer Construction', 'White v. Andys Produce Market', 'Wood v. Smartlink'"""
+    prompt_template_client = """Infer the ALIAS from the body and subject of the following email: "{text}" as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to 'Turner Systems'. However, if you cannot infer a match, return 'None'. ALIASES: {Aliases}"""
     prompt_clientmatter = PromptTemplate.from_template(prompt_template_client)
+    prompt_clientmatter.format(Aliases=clientAliases)
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt_clientmatter)
     output_clientmatter = chain.run(docs)
     return output_clientmatter
+
+def ConvertDate(year, month, day):
+    print("year", year, "month", month, "day", day)
+    yearstr = "{:04d}".format(year)
+    monthstr = "{:02d}".format(month)
+    daystr = "{:02d}".format(day)
+    datestr = yearstr+monthstr+daystr
+    print(datestr)
+    return datestr
 
 def process_email(email):
     global timeEntries
@@ -100,7 +115,9 @@ def process_email(email):
     te.Subject =  msg.subject
     docs = [Document(page_content=msg.body)]
     te.Alias = generateClientAlias(docs)
-    te.Date = msg.date
+    te.Date = ConvertDate(msg.date.year, msg.date.month, msg.date.day)
+    te.Client = ""
+    te.Matter = ""
     return te
 
 

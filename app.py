@@ -65,7 +65,7 @@ def DisplayReviewTab():
             st.write("Entry # ", st.session_state.entryIndex, "out of ", len(st.session_state.timeEntries)-1)
 
         
-        st.date_input("Date: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Date)
+        st.text_input("Date: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Date)
         match = clientAliases.index(st.session_state.timeEntries[st.session_state.entryIndex].Alias)
         client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
         narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
@@ -76,9 +76,6 @@ def DisplayReviewTab():
         st.text_area("Subject:", value=st.session_state.timeEntries[st.session_state.entryIndex].Subject)
         st.text_area("Body", value=st.session_state.timeEntries[st.session_state.entryIndex].Body, height=450)
 
-
-
-clientAliases = ['None','Aguilera v. Turner Systems, Inc.', 'Alvarez v. Command Security Services', 'Barnwell v. Gilton Solid Waste Management', 'Bhatia v. Mojio', 'Buksh v. Sixt Rent A Car', 'CAB v. UNITED SITE SERVICES, INC.', 'Casbeer v. Friends of Downtown SLO', 'Castellanos v. Urners, Inc.', 'Clement v. Rescue Mission Alliance', 'Cooper Aerial - PSG Contract Review', 'Crowe v. Alternative Power Generation', 'Deus v. Cuvaison, Inc.', 'Diaz v. Smartlink', 'Ghasemi v Valentia Analytical', 'Gonzalez Davalos v. Nouveau Bakery LLC', 'Gonzalez v. DS Electric, Inc.', 'Hernandez v. TSM Insurance Services', 'Hernandez v. Zarate Foods', 'Hicks v. SSA Group, LLC', 'Jackson v. Mental Health Systems dba TURN', 'Jermane v. Bethany Home Society of San Joaquin', 'Jimenez v. Wade et al ', 'Kolkmann v. Alternative Power Generation', 'Kumar DLSE De Novo Appeals', 'Melendez v. Peters Fruit Farms, Inc.', 'Miller v. Urata & Sons Concrete', 'Olson v. Allen Property Group, Inc.', 'Oracle Anesthesia, Inc. v. Central Valley Anesthesia Partners', 'Page v. Topix Pharmaceuticals', 'Patterson Board v. DCARA', 'PCC v. Fisher Construction Group', 'Raj v. WFP Hospitality II LLC', 'Rentner v. Trimble, Fletchers', 'Rocio Tafoya v. Peters Fruit Farms, Inc.', 'SBM v. Baker', 'Spooner v. Tri-Ced Economic Development Corporation', 'Staedler v. SSA Group, LLC', 'Steve v. Tulare Firestone, Inc.', 'Sweet Adeline v. Tasty Wings', 'TGS Logistics v. PCC Logistics', 'Thomas v. US Tech, Quest Media', 'Turpin v. Sinclair Broadcast Group, Inc.', 'Vaughn v. United Freight Lines', 'Wang et al v. Harris et al.', 'Webb v. Doug Tauzer Construction', 'White v. Andys Produce Market', 'Wood v. Smartlink']
 
 
 if 'entryIndex' not in st.session_state:
@@ -93,18 +90,28 @@ openai_api_key = st.secrets["OpenAI_key"]
 datafileName = ""
 
 
-tab1, tab2, tab3 = st.tabs(["Config", "Review", "Submit"])
+configTab, reviewTab, submitTab = st.tabs(["Config", "Review", "Submit"])
 
 
 
 
 
-with tab1:
+with configTab:
     st.subheader("PROCESS EMAIL", divider=True)
     uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
     if (st.button("Process Email")):
         for email in uploaded_emails:
             st.session_state.timeEntries.append(process_email(email))
 
-with tab2:
+
+with reviewTab:
     DisplayReviewTab()
+
+with submitTab:
+    df = pd.DataFrame(st.session_state.timeEntries)
+    st.dataframe(df)
+    if(st.button("Save")):
+        file_name = "TimeEntryData.xlsx"
+        datatoexcel = pd.ExcelWriter(file_name)
+        df.to_excel(datatoexcel)
+        datatoexcel.close()
