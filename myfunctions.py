@@ -99,7 +99,31 @@ def generateClientAlias(docs):
 
 # Define template
 
-    template_string = "Infer the ALIAS from the body and subject of the following email: {text} as compared to the following list of aliases. Your response MUST be taken from the following list of aliases. Just respond with the alias without adding any additional comments.  For example, you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. For example, you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to Turner Systems. However, if you cannot infer a match, return None. ALIASES = " + AliasesString
+    template_string = """
+    You are an attorney billing expert. Your job is to infer the client alias from the folowing email: {text} 
+    
+    In most cases, the subject of the email will contain the alias. In those cases you will compare the email subject with the LIST OF APPROVED ALIASES and return the alias FROM THE LIST OF APPROVED ALIASES that best matches the subject line. 
+
+    For example, where the email subject is "topix -- quick questions", you would compare this to the list of approved aliases and infer that Page v. Topix Pharmaceuticals is the best fit for the alias because none of the other aliases contain the work topix.
+    
+    In some cases, the subject will not contain enough information to infer the alias. In those case, you will look at the body of the email for information that matches an alias FROM THE LIST OF APPROVED ALIASES. 
+    Example 1: you may infer the  alias: Page v. Topix Pharmaceuticals where the body of the email refers to a person named Page. 
+    Example 2: you may infer the alias: Aguilera v. Turner Systems, Inc. where the subject of the email refers to Turner.
+
+    IMPORTANT: YOUR RESPONSE SHOULD NOT BE CONVERSATIONAL. YOUR REPSONSE ONLY CONTAIN THE ALIAS FROM THE LIST OF APPROVED ALIASES WITHOUT ANY ADDITIONAL WORDS. 
+
+    INCORRECT response: Based on the information provided in the email, the inferred client alias is "Gonzalez v. DS Electric, Inc."
+    CORRECT response: Gonzalez v. DS Electric, Inc.
+
+    IMPORTANT: IF YOU CANNOT INFER AN ALIAS FROM THE CONTENT PROVIDED, YOUR MUST RESPOND WITH THE SINGLE WORD: None
+
+    INCORRECT response: The inferred client alias from the email is None.
+    CORRECT response: none
+
+    THE LIST OF APPROVED ALIASES FOLLOWS = """ + AliasesString 
+
+
+
 
     prompt = PromptTemplate.from_template(template_string)
     
