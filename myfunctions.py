@@ -1,3 +1,4 @@
+import streamlit as st
 import extract_msg
 import os
 import textwrap
@@ -6,37 +7,21 @@ import datetime
 import pandas as pd
 
 
-
-
 from enum import Enum
-
-
 from dotenv import load_dotenv
-
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-
 from langchain_community.document_loaders import OutlookMessageLoader
-
-from langchain_openai import ChatOpenAI
-
-from langchain.chat_models import ChatOpenAI
-
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.llms import openai
 from langchain.chains.summarize import load_summarize_chain
-
 from langchain.docstore.document import Document
-
-from langchain import OpenAI
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
 from os import listdir
 from os.path import join, isfile
-
 from pathlib import Path
-
 from dataclasses import astuple, dataclass, field
 
 # create data class
@@ -77,16 +62,27 @@ def generateNarrative(docs):
     output_summary = chain.run(docs)
     return output_summary
 
-def GetClientDictionary():
+def GetClientData():
     ClientDict = pd.read_excel(r"G:\Data\clientdata.xlsx")
     return ClientDict
 
+def GetClientDictionary():
+    clientData = GetClientData()
+    clientDict = clientData.to_dict('split')['data']
+    return clientDict
+
 def GetAliasesList():
-    clientData = GetClientDictionary()
-    clientDict = clientData.to_dict('split')
+    clientData = GetClientData()
     aliasesList = clientData.to_dict('list')['Name']
     aliasesList.insert(0,"None")
     return aliasesList
+
+def GetMatterNumberList():
+    clientData = GetClientData()
+    matterList = clientData.to_dict('list')['Client/Matter Number']
+    matterList.insert(0,"None")
+    return matterList
+
 
 def GetAliasesString():
     AliasesList = GetAliasesList()
@@ -129,8 +125,8 @@ def generateClientAlias(docs):
     
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt)
     output_clientmatter = chain.run(docs)
-    print("Generated Alias: ", output_clientmatter)
-    return output_clientmatter
+    output = output_clientmatter.strip()
+    return output
 
 def ConvertDate(year, month, day):
     yearstr = "{:04d}".format(year)
@@ -138,6 +134,38 @@ def ConvertDate(year, month, day):
     daystr = "{:02d}".format(day)
     datestr = yearstr+monthstr+daystr
     return datestr
+
+def GetMatterIndex(alias):
+    clientList = GetAliasesList()
+    try:
+        matterIndex = clientList.index(alias)
+    except:
+        matterIndex = 0
+    return matterIndex
+    
+
+
+def GetClientMatterString(alias):
+    matterIndex = GetMatterIndex(alias)
+    clientMatterNumberList = GetMatterNumberList()
+    clientMatterString = clientMatterNumberList[matterIndex]
+    return clientMatterString
+
+def GetClientFromAlias(alias):
+    clientMatterString = GetClientMatterString(alias)
+    if(clientMatterString.find('-') > -1):
+        cmlist = clientMatterString.split("-")
+        return cmlist[0]
+    else:
+        return 0
+
+def GetMatterFromAlias(alias):
+    clientMatterString = GetClientMatterString(alias)
+    if(clientMatterString.find('-') > -1):
+        cmlist = clientMatterString.split("-")
+        return cmlist[1]
+    else:
+        return 0
 
 def process_email(email):
     global timeEntries
@@ -156,8 +184,8 @@ def process_email(email):
     docs = [Document(page_content=msg.body)]
     te.Alias = generateClientAlias(docs)
     te.Date = ConvertDate(msg.date.year, msg.date.month, msg.date.day)
-    te.Client = ""
-    te.Matter = ""
+    te.Client = GetClientFromAlias(te.Alias)
+    te.Matter = GetMatterFromAlias(te.Alias)
     return te
 
 

@@ -49,6 +49,9 @@ def ValidateIndex(x):
     else:
        st.session_state.entryIndex = st.session_state.entryIndex + x 
 
+def UpdateClientMatter()
+    
+
 def DisplayReviewTab():
     if(len(st.session_state.timeEntries)>=1):
         col1, col2 = st.columns([1, 1], gap="small")
@@ -72,8 +75,11 @@ def DisplayReviewTab():
                 print("Client alias not found")        # consider retrying lookup on failure
                 match = 0
 
-            client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
-    
+            client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match, on_change=UpdateClientMatter)
+
+
+            client = st.text_input(label="Client No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Client)
+            matter = st.text_input(label="Matter No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Matter)
             narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
 
             st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
