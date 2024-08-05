@@ -146,6 +146,8 @@ def SetWork():
     st.session_state.local_folder  = "c:/Users/dcravens/"
     st.write("Configured for Remote")
 
+def SortFunction(te):
+    return te.Date
 
 with configTab:
     st.button("Home", on_click=SetHome)
@@ -155,7 +157,8 @@ with configTab:
     if (st.button("Process Email")):
         for email in uploaded_emails:
             st.session_state.timeEntries.append(process_email(email))
-
+        st.session_state.timeEntries.sort(key=SortFunction)
+        
 
 with reviewTab:
     DisplayReviewTab()

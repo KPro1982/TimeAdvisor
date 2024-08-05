@@ -50,6 +50,7 @@ class timeEntry:
     Subject: str = ""
     Alias: str = ""
     Record: bool = True
+    
 
 
     
@@ -187,7 +188,7 @@ def process_email(email):
     )
     texts = text_splitter.split_text(msg.body)
  #   docs = [Document(page_content=t) for t in texts[:4]]
-    content = "SUBJECT:" + msg.subject + "BODY:" + msg.body
+    content = "SUBJECT:" + str(msg.subject) + "BODY:" + str(msg.body)
     docs = [Document(page_content=content)]
     te = timeEntry()
     narrative = generateNarrative(docs)
