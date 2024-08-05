@@ -43,6 +43,9 @@ st.set_page_config(
     menu_items=None
     )
 
+
+
+
 def ValidateIndex(x):
     maxx = len(st.session_state.timeEntries)-1
     timeWorked = 0.0
@@ -134,9 +137,19 @@ configTab, reviewTab, submitTab = st.tabs(["Config", "Review", "Submit"])
 
 
 
+def SetHome():
+    st.session_state.local_folder = "G:/Data/"
+    st.write("Configured for Home")
+
+
+def SetWork():
+    st.session_state.local_folder  = "c:/Users/dcravens/"
+    st.write("Configured for Remote")
 
 
 with configTab:
+    st.button("Home", on_click=SetHome)
+    st.button("Remote", on_click=SetWork)
     st.subheader("PROCESS EMAIL", divider=True)
     uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
     if (st.button("Process Email")):
@@ -155,7 +168,8 @@ with submitTab:
     df = pd.DataFrame(st.session_state.timeEntries)
     st.dataframe(df)
     if(st.button("Save")):
-        file_name = "G:\Data\\" + timestamp + "  TimeEntryData.xlsx"
+        
+        file_name = st.session_state.local_folder + timestamp + "  TimeEntryData.xlsx"
         print("Filename:", file_name)
         datatoexcel = pd.ExcelWriter(file_name)
         df[['UserID','Date','Timekeeper','Client','Matter','Task','Activity','Billable','HoursWorked','HoursBilled','Rate','Amount','Phase','Code1','Code2','Code3','Note','Narrative']].to_excel(datatoexcel, index=False)

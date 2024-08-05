@@ -74,7 +74,8 @@ def generateNarrative(docs):
     return output_summary
 
 def GetClientData():
-    ClientDict = pd.read_excel(r"G:\Data\clientdata.xlsx")
+    data_path = st.session_state.local_folder + "clientdata.xlsx"
+    ClientDict = pd.read_excel(data_path)
     return ClientDict
 
 def GetClientDictionary():
