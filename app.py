@@ -160,16 +160,17 @@ with configTab:
         for email in uploaded_emails:
             st.session_state.timeEntries.append(process_email(email))
             uploaded_emails.remove(email)
+            print("uploaded count:", len(uploaded_emails))
             emailcount += 1
             st.write("processed:", emailcount, ":", email.name)
             if(emailcount % 5 == 0):
                 print("Pausing.....")
-                time.sleep(30)
+                time.sleep(2)
                 timestamp = datetime.strftime(datetime.now(),"%m-%d-%Y_%H-%M-%S")
                 df = pd.DataFrame(st.session_state.timeEntries)
                 file_name = st.session_state.local_folder + "TempTimeData.xlsx"
                 print("Filename:", file_name)
-                datatoexcel = pd.ExcelWriter(file_name, mode="a")                                             )
+                datatoexcel = pd.ExcelWriter(file_name, mode="a", if_sheet_exists="new")                                             
                 df.to_excel(datatoexcel, index=False)
                 datatoexcel.close()
                 st.session_state.timeEntries.clear()
