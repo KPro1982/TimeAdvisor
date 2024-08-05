@@ -50,23 +50,26 @@ def ValidateIndex(x):
          st.session_state.entryIndex = maxx
     else:
        st.session_state.entryIndex = st.session_state.entryIndex + x 
+ 
 
-def UpdateClientMatter(cmIndex):
-    print("UPDATE:", cmIndex )
-    
+
+
+
 
 def DisplayReviewTab():
     if(len(st.session_state.timeEntries)>=1):
         col1, col2 = st.columns([1, 1], gap="small")
         with col1:
-            bcol1, bcol2, bcol3 = st.columns([1, 1, 4], gap="small") 
+            bcol1, bcol2, bcol3, bcol4, bcol5 = st.columns([1, 1, 1, 1, 2], gap="small") 
             with bcol1:   
-                if(st.button("Prev", key="PREV")):
-                    ValidateIndex(-1)
+                st.button("Prev", key="PREV", on_click=ValidateIndex, args=(-1,))
+                    
             with bcol2:
-                if(st.button("Next", key="NEXT")):
-                    ValidateIndex(1)
-            with bcol3:
+                st.button("Next", key="NEXT", on_click=ValidateIndex, args=(1,))
+                    
+
+                    
+            with bcol5:
                 st.write("Entry # ", st.session_state.entryIndex, "out of ", len(st.session_state.timeEntries)-1)
 
             clientAliases = GetAliasesList()
@@ -78,30 +81,41 @@ def DisplayReviewTab():
                 print("Client alias not found")        # consider retrying lookup on failure
                 match = 0
 
+            client_select_alias = ""
             client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
-            print("Selected Alias: ", client_select_alias)
+            st.session_state.timeEntries[st.session_state.entryIndex].Alias = client_select_alias 
 
-            if(len(client_select_alias) > 0 ):
-                client = st.text_input(label="Client No.", value=GetClientFromAlias(client_select_alias))
-                matter = st.text_input(label="Matter No.", value=GetMatterFromAlias(client_select_alias))
-            else:    
-                client = st.text_input(label="Client No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Client)
-                matter = st.text_input(label="Matter No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Matter)
+            client = st.text_input(label="Client No.", value=GetClientFromAlias(client_select_alias))
+            matter = st.text_input(label="Matter No.", value=GetMatterFromAlias(client_select_alias))
+
+
             narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
 
-            st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+            timeWorked = st.session_state.timeEntries[st.session_state.entryIndex].HoursWorked
+            timeWorked = st.number_input("Time Worked: ",value=float(timeWorked), min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
+
+
 
         with col2:
             st.text_area("Subject:", value=st.session_state.timeEntries[st.session_state.entryIndex].Subject)
             st.text_area("Body", value=st.session_state.timeEntries[st.session_state.entryIndex].Body, height=450)
-
-
+        
+        if(st.button("Update", key="UPDATE")):
+            alias = st.session_state.timeEntries[st.session_state.entryIndex].Alias 
+            st.session_state.timeEntries[st.session_state.entryIndex].Client = GetClientFromAlias(alias)
+            st.session_state.timeEntries[st.session_state.entryIndex].Matter = GetMatterFromAlias(alias)
+            st.session_state.timeEntries[st.session_state.entryIndex].HoursWorked = timeWorked
+            st.session_state.timeEntries[st.session_state.entryIndex].HoursBilled = timeWorked
+            timeWorked = 0
 
 if 'entryIndex' not in st.session_state:
     st.session_state.entryIndex = 0
 
 if 'timeEntries' not in st.session_state:
     st.session_state.timeEntries = []
+
+update_matter = False
+
 
 # load the openai_api key
 openai_api_key = st.secrets["OpenAI_key"]
