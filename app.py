@@ -175,5 +175,5 @@ with submitTab:
         file_name = st.session_state.local_folder + timestamp + "  TimeEntryData.xlsx"
         print("Filename:", file_name)
         datatoexcel = pd.ExcelWriter(file_name)
-        df[['UserID','Date','Timekeeper','Client','Matter','Task','Activity','Billable','HoursWorked','HoursBilled','Rate','Amount','Phase','Code1','Code2','Code3','Note','Narrative']].to_excel(datatoexcel, index=False)
+        df.to_excel(datatoexcel, index=False)
         datatoexcel.close()
