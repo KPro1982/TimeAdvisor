@@ -49,6 +49,7 @@ class timeEntry:
     Body: str = ""
     Subject: str = ""
     Alias: str = ""
+    Record: bool = True
 
 
     

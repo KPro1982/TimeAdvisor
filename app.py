@@ -32,6 +32,7 @@ from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from os import listdir
 from os.path import join, isfile
+from datetime import datetime
 from pathlib import Path
 from dataclasses import astuple, dataclass, field
 
@@ -44,19 +45,30 @@ st.set_page_config(
 
 def ValidateIndex(x):
     maxx = len(st.session_state.timeEntries)-1
+    timeWorked = 0.0
     if(st.session_state.entryIndex + x < 0):
         st.session_state.entryIndex = 0
     elif(st.session_state.entryIndex + x > maxx):
          st.session_state.entryIndex = maxx
     else:
        st.session_state.entryIndex = st.session_state.entryIndex + x 
- 
-
+    
+def UpdateRecord(timeWorked, recordResult):
+    print("UPDATE RECORD:", timeWorked, recordResult)
+    alias = st.session_state.timeEntries[st.session_state.entryIndex].Alias 
+    st.session_state.timeEntries[st.session_state.entryIndex].Client = GetClientFromAlias(alias)
+    st.session_state.timeEntries[st.session_state.entryIndex].Matter = GetMatterFromAlias(alias)
+    st.session_state.timeEntries[st.session_state.entryIndex].HoursWorked = timeWorked
+    st.session_state.timeEntries[st.session_state.entryIndex].HoursBilled = timeWorked
+    st.session_state.timeEntries[st.session_state.entryIndex].Record = recordResult
+    timeWorked = 0
 
 
 
 
 def DisplayReviewTab():
+    recordResult = True
+    timeWorked = 0.0
     if(len(st.session_state.timeEntries)>=1):
         col1, col2 = st.columns([1, 1], gap="small")
         with col1:
@@ -66,9 +78,10 @@ def DisplayReviewTab():
                     
             with bcol2:
                 st.button("Next", key="NEXT", on_click=ValidateIndex, args=(1,))
-                    
-
-                    
+            
+            with bcol4:
+                recordResult = st.checkbox("Record", value=st.session_state.timeEntries[st.session_state.entryIndex].Record)
+                st.session_state.timeEntries[st.session_state.entryIndex].Record = recordResult    
             with bcol5:
                 st.write("Entry # ", st.session_state.entryIndex, "out of ", len(st.session_state.timeEntries)-1)
 
@@ -100,13 +113,7 @@ def DisplayReviewTab():
             st.text_area("Subject:", value=st.session_state.timeEntries[st.session_state.entryIndex].Subject)
             st.text_area("Body", value=st.session_state.timeEntries[st.session_state.entryIndex].Body, height=450)
         
-        if(st.button("Update", key="UPDATE")):
-            alias = st.session_state.timeEntries[st.session_state.entryIndex].Alias 
-            st.session_state.timeEntries[st.session_state.entryIndex].Client = GetClientFromAlias(alias)
-            st.session_state.timeEntries[st.session_state.entryIndex].Matter = GetMatterFromAlias(alias)
-            st.session_state.timeEntries[st.session_state.entryIndex].HoursWorked = timeWorked
-            st.session_state.timeEntries[st.session_state.entryIndex].HoursBilled = timeWorked
-            timeWorked = 0
+        st.button("Update", on_click=UpdateRecord, args = (timeWorked,recordResult,))
 
 if 'entryIndex' not in st.session_state:
     st.session_state.entryIndex = 0
@@ -141,10 +148,15 @@ with reviewTab:
     DisplayReviewTab()
 
 with submitTab:
+
+    timestamp = datetime.strftime(datetime.now(),"%m-%d-%Y_%H-%M-%S")
+    print("timestamp:", timestamp)
+
     df = pd.DataFrame(st.session_state.timeEntries)
     st.dataframe(df)
     if(st.button("Save")):
-        file_name = "TimeEntryData.xlsx"
+        file_name = "G:\Data\\" + timestamp + "  TimeEntryData.xlsx"
+        print("Filename:", file_name)
         datatoexcel = pd.ExcelWriter(file_name)
-        df.to_excel(datatoexcel)
+        df[['UserID','Date','Timekeeper','Client','Matter','Task','Activity','Billable','HoursWorked','HoursBilled','Rate','Amount','Phase','Code1','Code2','Code3','Note','Narrative']].to_excel(datatoexcel, index=False)
         datatoexcel.close()
