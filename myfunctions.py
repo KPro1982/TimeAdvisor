@@ -56,8 +56,18 @@ class timeEntry:
 
 def generateNarrative(docs):
     llm = ChatOpenAI(temperature=0.3, model_name="gpt-3.5-turbo-16k")
-    prompt_template = """Prepare a billing entry for attorney Daniel Cravens that succinctly summarizes the work that he performed. You must begin your billing entry with a verb. Where the work performed was a communication with another person, you should begin the billing entry with "Email communication with [person that Daniel was emailing] concerning [description of work]. You will infer the work performed from the following email: "{text}"
-        Description: """
+    prompt_template = """
+    You are a secretary working for attorney Daniel Cravens. Your job is to create a billing entry that succinctly summarizes the work that Daniel Cravens performed based on the email provided. You must begin your billing entry with a verb. 
+    
+    EXAMPLE 1: Where Daniel Cravens is emailing with a person outside of the ohaganmeyer.com domain, begin the billing entry with "Email communication with [insert name of person to whom Daniel was communicating] concerning [description of work]. 
+    
+    Example 2: Where Daniel Cravens is email the opposing attorney on the case, the summary would begin "Meet and confer correspondence with opposing counsel [insert name of opposing counsel] regarding [insert subject matter of discussion]"
+
+    EXAMPLE 3: Where Daniel Cravens is providing instructions to a person within the ohaganmeyer.com domain, the work performed should be written work product that will ultimately be produced but should not mention the name of the people. For example, where the Daniel instructions Caleb to prepare a shell for a motion to compel, the entry would be: "Update and revise motion to compel"
+    
+    Email to summarize: "{text}"
+    
+    """
     prompt = PromptTemplate.from_template(prompt_template)
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=prompt)
     output_summary = chain.run(docs)
@@ -176,7 +186,8 @@ def process_email(email):
     )
     texts = text_splitter.split_text(msg.body)
  #   docs = [Document(page_content=t) for t in texts[:4]]
-    docs = [Document(page_content=msg.body)]
+    content = "SUBJECT:" + msg.subject + "BODY:" + msg.body
+    docs = [Document(page_content=content)]
     te = timeEntry()
     narrative = generateNarrative(docs)
     te.Narrative = narrative
