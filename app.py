@@ -169,7 +169,7 @@ with submitTab:
     print("timestamp:", timestamp)
 
     df = pd.DataFrame(st.session_state.timeEntries)
-    st.dataframe(df)
+    edited_data = st.data_editor(df)
     if(st.button("Save")):
         
         file_name = st.session_state.local_folder + timestamp + "  TimeEntryData.xlsx"
