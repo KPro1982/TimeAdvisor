@@ -15,6 +15,8 @@ import myfunctions
 from myfunctions import process_email
 from myfunctions import timeEntry
 from myfunctions import GetAliasesList
+from myfunctions import GetMatterFromAlias
+from myfunctions import GetClientFromAlias
 
 
 from enum import Enum
@@ -49,7 +51,8 @@ def ValidateIndex(x):
     else:
        st.session_state.entryIndex = st.session_state.entryIndex + x 
 
-def UpdateClientMatter()
+def UpdateClientMatter(cmIndex):
+    print("UPDATE:", cmIndex )
     
 
 def DisplayReviewTab():
@@ -75,11 +78,15 @@ def DisplayReviewTab():
                 print("Client alias not found")        # consider retrying lookup on failure
                 match = 0
 
-            client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match, on_change=UpdateClientMatter)
+            client_select_alias = st.selectbox(label="Client Alias Selector: ", options=clientAliases, index=match)
+            print("Selected Alias: ", client_select_alias)
 
-
-            client = st.text_input(label="Client No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Client)
-            matter = st.text_input(label="Matter No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Matter)
+            if(len(client_select_alias) > 0 ):
+                client = st.text_input(label="Client No.", value=GetClientFromAlias(client_select_alias))
+                matter = st.text_input(label="Matter No.", value=GetMatterFromAlias(client_select_alias))
+            else:    
+                client = st.text_input(label="Client No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Client)
+                matter = st.text_input(label="Matter No.", value=st.session_state.timeEntries[st.session_state.entryIndex].Matter)
             narrative = st.text_area(label="Narrative: ", value=st.session_state.timeEntries[st.session_state.entryIndex].Narrative)
 
             st.number_input("Time Worked: ", min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
