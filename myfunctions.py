@@ -184,12 +184,12 @@ def process_email(email):
     global timeEntries
     msg = extract_msg.Message(email)
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=4000, chunk_overlap=0, separators=[" ", ",", "\n"]
+        chunk_size=4000, chunk_overlap=500, separators=[" ", ",", "\n"]
     )
     texts = text_splitter.split_text(msg.body)
- #   docs = [Document(page_content=t) for t in texts[:4]]
-    content = "SUBJECT:" + str(msg.subject) + "BODY:" + str(msg.body)
-    docs = [Document(page_content=content)]
+    docs = [Document(page_content=t) for t in texts[:2]]
+    # content = "SUBJECT:" + str(msg.subject) + "BODY:" + str(msg.body)
+    # docs = [Document(page_content=content)]
     te = timeEntry()
     narrative = generateNarrative(docs)
     te.Narrative = narrative

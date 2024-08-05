@@ -10,6 +10,7 @@ import textwrap
 import csv
 import datetime
 import pandas as pd
+import time
 import myfunctions
 
 from myfunctions import process_email
@@ -43,7 +44,7 @@ st.set_page_config(
     menu_items=None
     )
 
-
+st.session_state.local_folder = "G:/Data/"
 
 
 def ValidateIndex(x):
@@ -109,7 +110,7 @@ def DisplayReviewTab():
 
             timeWorked = st.session_state.timeEntries[st.session_state.entryIndex].HoursWorked
             timeWorked = st.number_input("Time Worked: ",value=float(timeWorked), min_value=0.0, max_value=8.0, step=0.1, format="%0.1f")
-
+            st.session_state.timeEntries[st.session_state.entryIndex].Narrative = narrative
 
 
         with col2:
@@ -155,9 +156,26 @@ with configTab:
     st.subheader("PROCESS EMAIL", divider=True)
     uploaded_emails = st.file_uploader(" ",accept_multiple_files=True, help="Drag and drop emails to process into time entries.")
     if (st.button("Process Email")):
+        emailcount = 0
         for email in uploaded_emails:
             st.session_state.timeEntries.append(process_email(email))
-        st.session_state.timeEntries.sort(key=SortFunction)
+            uploaded_emails.remove(email)
+            emailcount += 1
+            st.write("processed:", emailcount, ":", email.name)
+            if(emailcount % 5 == 0):
+                print("Pausing.....")
+                time.sleep(30)
+                timestamp = datetime.strftime(datetime.now(),"%m-%d-%Y_%H-%M-%S")
+                df = pd.DataFrame(st.session_state.timeEntries)
+                file_name = st.session_state.local_folder + "TempTimeData.xlsx"
+                print("Filename:", file_name)
+                datatoexcel = pd.ExcelWriter(file_name, mode="a")                                             )
+                df.to_excel(datatoexcel, index=False)
+                datatoexcel.close()
+                st.session_state.timeEntries.clear()
+        st.write("processing completed!")
+
+
         
 
 with reviewTab:
@@ -166,12 +184,11 @@ with reviewTab:
 with submitTab:
 
     timestamp = datetime.strftime(datetime.now(),"%m-%d-%Y_%H-%M-%S")
-    print("timestamp:", timestamp)
-
     df = pd.DataFrame(st.session_state.timeEntries)
-    edited_data = st.data_editor(df)
+    if(st.button("Refresh")):
+        edited_data = st.data_editor(df)
+
     if(st.button("Save")):
-        
         file_name = st.session_state.local_folder + timestamp + "  TimeEntryData.xlsx"
         print("Filename:", file_name)
         datatoexcel = pd.ExcelWriter(file_name)
